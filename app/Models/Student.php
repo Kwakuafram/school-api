@@ -65,12 +65,12 @@ class Student extends Model
         return $this->hasMany(StudentEnrollment::class);
     }
 
-  public function currentEnrollment()
-{
-    return $this->hasOne(StudentEnrollment::class)
-        ->where('status', 'active')
-        ->orderByDesc('created_at');
-}
+    public function currentEnrollment()
+    {
+        return $this->hasOne(StudentEnrollment::class)
+            ->where('status', 'active')
+            ->orderByDesc('created_at');
+    }
 
     public function getFullNameAttribute(): string
     {

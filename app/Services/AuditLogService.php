@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\AuditLog;
+use App\Models\Campus;
+use App\Models\School;
 use App\Services\Tenancy\TenantContext;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -48,7 +50,7 @@ class AuditLogService
             return $auditable->school_id;
         }
 
-        if ($auditable instanceof \App\Models\School) {
+        if ($auditable instanceof School) {
             return $auditable->id;
         }
 
@@ -61,7 +63,7 @@ class AuditLogService
             return $auditable->campus_id;
         }
 
-        if ($auditable instanceof \App\Models\Campus) {
+        if ($auditable instanceof Campus) {
             return $auditable->id;
         }
 

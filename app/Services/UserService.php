@@ -8,7 +8,6 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
-use App\Services\AuditLogService;
 
 class UserService
 {
@@ -104,53 +103,53 @@ class UserService
         });
     }
 
- public function activate(User $user): User
-{
-    $this->abortIfUserOutsideTenant($user);
+    public function activate(User $user): User
+    {
+        $this->abortIfUserOutsideTenant($user);
 
-    $oldValues = [
-        'status' => $user->status,
-    ];
+        $oldValues = [
+            'status' => $user->status,
+        ];
 
-    $user->update(['status' => 'active']);
+        $user->update(['status' => 'active']);
 
-    $this->auditLogService->record(
-        action: 'user.activated',
-        auditable: $user,
-        oldValues: $oldValues,
-        newValues: [
-            'status' => 'active',
-        ],
-    );
+        $this->auditLogService->record(
+            action: 'user.activated',
+            auditable: $user,
+            oldValues: $oldValues,
+            newValues: [
+                'status' => 'active',
+            ],
+        );
 
-    return $user->refresh()->load(['roles', 'schools']);
-}
+        return $user->refresh()->load(['roles', 'schools']);
+    }
 
- public function suspend(User $user): User
-{
-    $this->abortIfUserOutsideTenant($user);
+    public function suspend(User $user): User
+    {
+        $this->abortIfUserOutsideTenant($user);
 
-    $oldValues = [
-        'status' => $user->status,
-    ];
+        $oldValues = [
+            'status' => $user->status,
+        ];
 
-    $user->update(['status' => 'suspended']);
-    $user->tokens()->delete();
+        $user->update(['status' => 'suspended']);
+        $user->tokens()->delete();
 
-    $this->auditLogService->record(
-        action: 'user.suspended',
-        auditable: $user,
-        oldValues: $oldValues,
-        newValues: [
-            'status' => 'suspended',
-        ],
-        metadata: [
-            'tokens_revoked' => true,
-        ],
-    );
+        $this->auditLogService->record(
+            action: 'user.suspended',
+            auditable: $user,
+            oldValues: $oldValues,
+            newValues: [
+                'status' => 'suspended',
+            ],
+            metadata: [
+                'tokens_revoked' => true,
+            ],
+        );
 
-    return $user->refresh()->load(['roles', 'schools']);
-}
+        return $user->refresh()->load(['roles', 'schools']);
+    }
 
     private function abortIfUserOutsideTenant(User $user): void
     {

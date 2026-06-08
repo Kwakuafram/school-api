@@ -1,15 +1,15 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AuditLogController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CampusController;
 use App\Http\Controllers\Api\V1\SchoolController;
+use App\Http\Controllers\Api\V1\StudentController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\V1\AuditLogController;
-use App\Http\Controllers\Api\V1\StudentController;
 
 Route::prefix('v1')->group(function () {
-    Route::get('/health', fn() => response()->json([
+    Route::get('/health', fn () => response()->json([
         'status' => 'ok',
         'app' => config('app.name'),
         'time' => now()->toISOString(),

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class School extends Model
 {
-    use HasUuidPrimaryKey, SoftDeletes, RecordsAuditLogs;
+    use HasUuidPrimaryKey, RecordsAuditLogs, SoftDeletes;
 
     protected $fillable = [
         'name',

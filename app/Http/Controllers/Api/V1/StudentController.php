@@ -8,6 +8,7 @@ use App\Http\Requests\Students\UpdateStudentRequest;
 use App\Http\Resources\StudentResource;
 use App\Models\Student;
 use App\Services\Students\StudentService;
+use App\Services\Tenancy\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -43,7 +44,7 @@ class StudentController extends Controller
     public function show(Student $student): JsonResponse
     {
         abort_unless(
-            $student->school_id === app(\App\Services\Tenancy\TenantContext::class)->requireSchoolId(),
+            $student->school_id === app(TenantContext::class)->requireSchoolId(),
             403,
             'You cannot view a student outside the current school.'
         );

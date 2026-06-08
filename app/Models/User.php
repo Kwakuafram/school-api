@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Models\Traits\HasUuidPrimaryKey;
+use App\Models\Traits\RecordsAuditLogs;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-use App\Models\Traits\RecordsAuditLogs;
 
 class User extends Authenticatable
 {
@@ -57,8 +57,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(AuditLog::class);
     }
+
     public function shouldRecordAuditLog(): bool
-{
-    return true;
-}
+    {
+        return true;
+    }
 }
