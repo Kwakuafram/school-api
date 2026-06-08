@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Campuses;
 
+use App\Services\Tenancy\TenantContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -10,16 +11,14 @@ class StoreCampusRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
-
-        // Later:
-        // return $this->user()?->can('campuses.create') ?? false;
     }
 
     public function rules(): array
     {
-        return [
-            'school_id' => ['required', 'uuid', Rule::exists('schools', 'id')],
+        /** @var TenantContext $tenantContext */
+        $tenantContext = app(TenantContext::class);
 
+        return [
             'name' => ['required', 'string', 'max:255'],
 
             'code' => [
@@ -27,7 +26,7 @@ class StoreCampusRequest extends FormRequest
                 'string',
                 'max:50',
                 Rule::unique('campuses', 'code')
-                    ->where('school_id', $this->input('school_id')),
+                    ->where('school_id', $tenantContext->schoolId()),
             ],
 
             'email' => ['nullable', 'email', 'max:255'],

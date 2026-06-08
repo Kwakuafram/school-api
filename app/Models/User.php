@@ -9,11 +9,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\Traits\RecordsAuditLogs;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, HasRoles, HasUuidPrimaryKey, Notifiable;
+    use HasApiTokens, HasFactory, HasRoles, HasUuidPrimaryKey, Notifiable, RecordsAuditLogs;
 
     protected $fillable = [
         'name',
@@ -56,4 +57,8 @@ class User extends Authenticatable
     {
         return $this->hasMany(AuditLog::class);
     }
+    public function shouldRecordAuditLog(): bool
+{
+    return true;
+}
 }

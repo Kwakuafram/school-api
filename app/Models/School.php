@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use App\Models\Traits\HasUuidPrimaryKey;
+use App\Models\Traits\RecordsAuditLogs;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class School extends Model
 {
-    use HasUuidPrimaryKey, SoftDeletes;
+    use HasUuidPrimaryKey, SoftDeletes, RecordsAuditLogs;
 
     protected $fillable = [
         'name',

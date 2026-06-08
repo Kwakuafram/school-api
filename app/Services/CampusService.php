@@ -3,17 +3,22 @@
 namespace App\Services;
 
 use App\Models\Campus;
+use App\Services\Tenancy\TenantContext;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 class CampusService
 {
+    public function __construct(
+        private readonly TenantContext $tenantContext
+    ) {}
+
     public function list(array $filters = []): LengthAwarePaginator
     {
         return Campus::query()
-            ->with(['school'])
-            ->when($filters['school_id'] ?? null, fn (Builder $query, string $schoolId) => $query->where('school_id', $schoolId))
+            ->with('school')
+            ->forCurrentSchool()
             ->when($filters['status'] ?? null, fn (Builder $query, string $status) => $query->where('status', $status))
             ->when($filters['search'] ?? null, function (Builder $query, string $search) {
                 $query->where(function (Builder $query) use ($search) {
@@ -29,12 +34,16 @@ class CampusService
     public function create(array $data): Campus
     {
         return DB::transaction(function () use ($data) {
+            $schoolId = $this->tenantContext->requireSchoolId();
+
             if ((bool) ($data['is_main'] ?? false)) {
-                Campus::where('school_id', $data['school_id'])->update(['is_main' => false]);
+                Campus::query()
+                    ->where('school_id', $schoolId)
+                    ->update(['is_main' => false]);
             }
 
-            return Campus::create([
-                'school_id' => $data['school_id'],
+            return Campus::query()->create([
+                'school_id' => $schoolId,
                 'name' => $data['name'],
                 'code' => $data['code'],
                 'email' => $data['email'] ?? null,
@@ -53,8 +62,17 @@ class CampusService
     public function update(Campus $campus, array $data): Campus
     {
         return DB::transaction(function () use ($campus, $data) {
+            $schoolId = $this->tenantContext->requireSchoolId();
+
+            abort_unless(
+                $campus->school_id === $schoolId,
+                403,
+                'You cannot update a campus outside the current school.'
+            );
+
             if ((bool) ($data['is_main'] ?? false)) {
-                Campus::where('school_id', $data['school_id'] ?? $campus->school_id)
+                Campus::query()
+                    ->where('school_id', $schoolId)
                     ->where('id', '!=', $campus->id)
                     ->update(['is_main' => false]);
             }
@@ -68,6 +86,14 @@ class CampusService
     public function delete(Campus $campus): void
     {
         DB::transaction(function () use ($campus) {
+            $schoolId = $this->tenantContext->requireSchoolId();
+
+            abort_unless(
+                $campus->school_id === $schoolId,
+                403,
+                'You cannot delete a campus outside the current school.'
+            );
+
             $campus->delete();
         });
     }

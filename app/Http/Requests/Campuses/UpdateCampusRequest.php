@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Campuses;
 
+use App\Services\Tenancy\TenantContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -10,20 +11,16 @@ class UpdateCampusRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
-
-        // Later:
-        // return $this->user()?->can('campuses.update') ?? false;
     }
 
     public function rules(): array
     {
         $campus = $this->route('campus');
-        $campusId = $campus?->id ?? $campus;
-        $schoolId = $this->input('school_id', $campus?->school_id);
+
+        /** @var TenantContext $tenantContext */
+        $tenantContext = app(TenantContext::class);
 
         return [
-            'school_id' => ['sometimes', 'required', 'uuid', Rule::exists('schools', 'id')],
-
             'name' => ['sometimes', 'required', 'string', 'max:255'],
 
             'code' => [
@@ -32,8 +29,8 @@ class UpdateCampusRequest extends FormRequest
                 'string',
                 'max:50',
                 Rule::unique('campuses', 'code')
-                    ->where('school_id', $schoolId)
-                    ->ignore($campusId),
+                    ->where('school_id', $tenantContext->schoolId())
+                    ->ignore($campus?->id),
             ],
 
             'email' => ['sometimes', 'nullable', 'email', 'max:255'],

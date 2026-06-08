@@ -3,17 +3,29 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Services\Tenancy\TenantContext;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use App\Services\AuditLogService;
 
 class UserService
 {
+    public function __construct(
+        private readonly TenantContext $tenantContext,
+        private readonly AuditLogService $auditLogService
+    ) {}
+
     public function list(array $filters = []): LengthAwarePaginator
     {
+        $schoolId = $this->tenantContext->requireSchoolId();
+
         return User::query()
             ->with(['roles', 'schools'])
+            ->whereHas('schools', function (Builder $query) use ($schoolId) {
+                $query->where('schools.id', $schoolId);
+            })
             ->when($filters['search'] ?? null, function (Builder $query, string $search) {
                 $query->where(function (Builder $query) use ($search) {
                     $query->where('name', 'ILIKE', "%{$search}%")
@@ -28,27 +40,25 @@ class UserService
     public function create(array $data): User
     {
         return DB::transaction(function () use ($data) {
-            $roles = $data['roles'] ?? [];
+            $schoolId = $this->tenantContext->requireSchoolId();
 
-            $user = User::create([
+            $user = User::query()->create([
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => $data['password'],
                 'status' => $data['status'] ?? 'active',
             ]);
 
-            if (! empty($roles)) {
-                $user->syncRoles($roles);
+            if (! empty($data['roles'])) {
+                $user->syncRoles($data['roles']);
             }
 
-            if (! empty($data['school_id'])) {
-                $user->schools()->syncWithoutDetaching([
-                    $data['school_id'] => [
-                        'role_context' => $data['role_context'] ?? null,
-                        'is_default' => (bool) ($data['is_default_school'] ?? true),
-                    ],
-                ]);
-            }
+            $user->schools()->syncWithoutDetaching([
+                $schoolId => [
+                    'role_context' => $data['role_context'] ?? null,
+                    'is_default' => (bool) ($data['is_default_school'] ?? true),
+                ],
+            ]);
 
             return $user->load(['roles', 'schools']);
         });
@@ -57,12 +67,16 @@ class UserService
     public function update(User $user, array $data): User
     {
         return DB::transaction(function () use ($user, $data) {
+            $this->abortIfUserOutsideTenant($user);
+
             $rolesProvided = array_key_exists('roles', $data);
             $roles = $data['roles'] ?? [];
 
             $payload = Arr::except($data, [
                 'roles',
                 'password_confirmation',
+                'role_context',
+                'is_default_school',
             ]);
 
             if (array_key_exists('password', $payload) && empty($payload['password'])) {
@@ -82,24 +96,74 @@ class UserService
     public function delete(User $user): void
     {
         DB::transaction(function () use ($user) {
+            $this->abortIfUserOutsideTenant($user);
+
             $user->tokens()->delete();
             $user->schools()->detach();
             $user->delete();
         });
     }
 
-    public function activate(User $user): User
+ public function activate(User $user): User
+{
+    $this->abortIfUserOutsideTenant($user);
+
+    $oldValues = [
+        'status' => $user->status,
+    ];
+
+    $user->update(['status' => 'active']);
+
+    $this->auditLogService->record(
+        action: 'user.activated',
+        auditable: $user,
+        oldValues: $oldValues,
+        newValues: [
+            'status' => 'active',
+        ],
+    );
+
+    return $user->refresh()->load(['roles', 'schools']);
+}
+
+ public function suspend(User $user): User
+{
+    $this->abortIfUserOutsideTenant($user);
+
+    $oldValues = [
+        'status' => $user->status,
+    ];
+
+    $user->update(['status' => 'suspended']);
+    $user->tokens()->delete();
+
+    $this->auditLogService->record(
+        action: 'user.suspended',
+        auditable: $user,
+        oldValues: $oldValues,
+        newValues: [
+            'status' => 'suspended',
+        ],
+        metadata: [
+            'tokens_revoked' => true,
+        ],
+    );
+
+    return $user->refresh()->load(['roles', 'schools']);
+}
+
+    private function abortIfUserOutsideTenant(User $user): void
     {
-        $user->update(['status' => 'active']);
+        $schoolId = $this->tenantContext->requireSchoolId();
 
-        return $user->refresh()->load(['roles', 'schools']);
-    }
+        $belongsToSchool = $user->schools()
+            ->where('schools.id', $schoolId)
+            ->exists();
 
-    public function suspend(User $user): User
-    {
-        $user->update(['status' => 'suspended']);
-        $user->tokens()->delete();
-
-        return $user->refresh()->load(['roles', 'schools']);
+        abort_unless(
+            $belongsToSchool,
+            403,
+            'You cannot manage a user outside the current school.'
+        );
     }
 }

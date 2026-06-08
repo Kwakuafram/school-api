@@ -23,6 +23,14 @@ class AuditLogResource extends JsonResource
             'ip_address' => $this->ip_address,
             'user_agent' => $this->user_agent,
             'created_at' => $this->created_at?->toISOString(),
+
+            'user' => $this->whenLoaded('user', function () {
+                return [
+                    'id' => $this->user?->id,
+                    'name' => $this->user?->name,
+                    'email' => $this->user?->email,
+                ];
+            }),
         ];
     }
 }

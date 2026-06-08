@@ -66,6 +66,9 @@ class RolePermissionSeeder extends Seeder
             'reports.export',
 
             'dashboard.view',
+
+            'audit_logs.view',
+            'audit_logs.export',
         ];
 
         $permissions = collect($permissionNames)
@@ -113,6 +116,7 @@ class RolePermissionSeeder extends Seeder
             'students.view',
             'students.create',
             'students.update',
+            'students.delete',
             'students.promote',
 
             'teachers.view',
@@ -138,6 +142,7 @@ class RolePermissionSeeder extends Seeder
             'reports.export',
 
             'dashboard.view',
+            'audit_logs.view',
         ])->values()->all());
 
         $roles['principal']->syncPermissions($permissions->only([
