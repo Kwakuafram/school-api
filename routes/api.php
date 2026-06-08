@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\AuditLogController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CampusController;
+use App\Http\Controllers\Api\V1\GuardianController;
 use App\Http\Controllers\Api\V1\SchoolController;
 use App\Http\Controllers\Api\V1\StudentController;
 use App\Http\Controllers\Api\V1\UserController;
@@ -61,6 +62,16 @@ Route::prefix('v1')->group(function () {
             Route::middleware('permission:students.view')->get('students/{student}', [StudentController::class, 'show']);
             Route::middleware('permission:students.update')->match(['put', 'patch'], 'students/{student}', [StudentController::class, 'update']);
             Route::middleware('permission:students.delete')->delete('students/{student}', [StudentController::class, 'destroy']);
+
+            Route::middleware('permission:guardians.view')->get('guardians', [GuardianController::class, 'index']);
+            Route::middleware('permission:guardians.create')->post('guardians', [GuardianController::class, 'store']);
+            Route::middleware('permission:guardians.view')->get('guardians/{guardian}', [GuardianController::class, 'show']);
+            Route::middleware('permission:guardians.update')->match(['put', 'patch'], 'guardians/{guardian}', [GuardianController::class, 'update']);
+            Route::middleware('permission:guardians.delete')->delete('guardians/{guardian}', [GuardianController::class, 'destroy']);
+
+            Route::middleware('permission:students.guardians.manage')->post('students/{student}/guardians', [GuardianController::class, 'attachToStudent']);
+            Route::middleware('permission:students.guardians.manage')->patch('students/{student}/guardians/{guardian}', [GuardianController::class, 'updateStudentGuardian']);
+            Route::middleware('permission:students.guardians.manage')->delete('students/{student}/guardians/{guardian}', [GuardianController::class, 'detachFromStudent']);
         });
     });
 });

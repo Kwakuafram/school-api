@@ -2,28 +2,39 @@
 
 namespace App\Http\Requests\Guardians;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreGuardianRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+            'first_name' => ['required', 'string', 'max:255'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+
+            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'alternate_phone' => ['nullable', 'string', 'max:50'],
+
+            'occupation' => ['nullable', 'string', 'max:255'],
+            'employer' => ['nullable', 'string', 'max:255'],
+
+            'address' => ['nullable', 'string'],
+
+            'status' => [
+                'nullable',
+                'string',
+                Rule::in(['active', 'inactive']),
+            ],
+
+            'metadata' => ['nullable', 'array'],
         ];
     }
 }

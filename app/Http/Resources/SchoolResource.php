@@ -24,7 +24,7 @@ class SchoolResource extends JsonResource
             'settings' => $this->settings,
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
-
+            'current_enrollment' => new StudentEnrollmentResource($this->whenLoaded('currentEnrollment')),
             'campuses' => CampusResource::collection($this->whenLoaded('campuses')),
         ];
     }

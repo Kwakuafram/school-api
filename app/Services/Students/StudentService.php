@@ -47,7 +47,7 @@ class StudentService
             ]);
 
             if (! empty($data['enrollment'])) {
-                StudentEnrollment::query()->create([
+                $enrollment = StudentEnrollment::query()->create([
                     'school_id' => $schoolId,
                     'campus_id' => $student->campus_id,
                     'student_id' => $student->id,
@@ -57,6 +57,10 @@ class StudentService
                     'class_arm' => $data['enrollment']['class_arm'] ?? null,
                     'enrolled_at' => $data['enrollment']['enrolled_at'] ?? now()->toDateString(),
                     'status' => 'active',
+                ]);
+
+                $student->update([
+                    'current_enrollment_id' => $enrollment->id,
                 ]);
             }
 

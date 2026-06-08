@@ -15,6 +15,7 @@ class Student extends Model
     protected $fillable = [
         'school_id',
         'campus_id',
+        'current_enrollment_id',
         'admission_number',
         'first_name',
         'middle_name',
@@ -67,9 +68,23 @@ class Student extends Model
 
     public function currentEnrollment()
     {
-        return $this->hasOne(StudentEnrollment::class)
+        return $this->belongsTo(StudentEnrollment::class, 'current_enrollment_id');
+    }
+
+    public function getCurrentEnrollmentRecord(): ?StudentEnrollment
+    {
+        if ($this->relationLoaded('currentEnrollment')) {
+            return $this->currentEnrollment;
+        }
+
+        if ($this->current_enrollment_id) {
+            return $this->currentEnrollment()->first();
+        }
+
+        return $this->enrollments()
             ->where('status', 'active')
-            ->orderByDesc('created_at');
+            ->latest('created_at')
+            ->first();
     }
 
     public function getFullNameAttribute(): string
