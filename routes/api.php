@@ -1,5 +1,13 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Academics\AcademicTermController;
+use App\Http\Controllers\Api\V1\Academics\AcademicYearController;
+use App\Http\Controllers\Api\V1\Academics\ClassArmController;
+use App\Http\Controllers\Api\V1\Academics\ClassLevelController;
+use App\Http\Controllers\Api\V1\Academics\SubjectController;
+use App\Http\Controllers\Api\V1\Academics\TeacherAssignmentController;
+use App\Http\Controllers\Api\V1\Attendance\AttendanceSessionController;
+use App\Http\Controllers\Api\V1\Attendance\StudentAttendanceController;
 use App\Http\Controllers\Api\V1\AuditLogController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CampusController;
@@ -72,6 +80,99 @@ Route::prefix('v1')->group(function () {
             Route::middleware('permission:students.guardians.manage')->post('students/{student}/guardians', [GuardianController::class, 'attachToStudent']);
             Route::middleware('permission:students.guardians.manage')->patch('students/{student}/guardians/{guardian}', [GuardianController::class, 'updateStudentGuardian']);
             Route::middleware('permission:students.guardians.manage')->delete('students/{student}/guardians/{guardian}', [GuardianController::class, 'detachFromStudent']);
+
+            /*
+|--------------------------------------------------------------------------
+| Academic Structure Routes
+|--------------------------------------------------------------------------
+*/
+
+            Route::middleware('permission:academics.view')
+                ->get('academic-years', [AcademicYearController::class, 'index']);
+            Route::middleware('permission:academics.create')
+                ->post('academic-years', [AcademicYearController::class, 'store']);
+            Route::middleware('permission:academics.view')
+                ->get('academic-years/{academicYear}', [AcademicYearController::class, 'show']);
+            Route::middleware('permission:academics.update')
+                ->match(['put', 'patch'], 'academic-years/{academicYear}', [AcademicYearController::class, 'update']);
+            Route::middleware('permission:academics.delete')
+                ->delete('academic-years/{academicYear}', [AcademicYearController::class, 'destroy']);
+
+            Route::middleware('permission:academics.view')
+                ->get('academic-terms', [AcademicTermController::class, 'index']);
+            Route::middleware('permission:academics.create')
+                ->post('academic-terms', [AcademicTermController::class, 'store']);
+            Route::middleware('permission:academics.view')
+                ->get('academic-terms/{academicTerm}', [AcademicTermController::class, 'show']);
+            Route::middleware('permission:academics.update')
+                ->match(['put', 'patch'], 'academic-terms/{academicTerm}', [AcademicTermController::class, 'update']);
+            Route::middleware('permission:academics.delete')
+                ->delete('academic-terms/{academicTerm}', [AcademicTermController::class, 'destroy']);
+
+            Route::middleware('permission:academics.view')
+                ->get('class-levels', [ClassLevelController::class, 'index']);
+            Route::middleware('permission:academics.create')
+                ->post('class-levels', [ClassLevelController::class, 'store']);
+            Route::middleware('permission:academics.view')
+                ->get('class-levels/{classLevel}', [ClassLevelController::class, 'show']);
+            Route::middleware('permission:academics.update')
+                ->match(['put', 'patch'], 'class-levels/{classLevel}', [ClassLevelController::class, 'update']);
+            Route::middleware('permission:academics.delete')
+                ->delete('class-levels/{classLevel}', [ClassLevelController::class, 'destroy']);
+
+            Route::middleware('permission:academics.view')
+                ->get('class-arms', [ClassArmController::class, 'index']);
+            Route::middleware('permission:academics.create')
+                ->post('class-arms', [ClassArmController::class, 'store']);
+            Route::middleware('permission:academics.view')
+                ->get('class-arms/{classArm}', [ClassArmController::class, 'show']);
+            Route::middleware('permission:academics.update')
+                ->match(['put', 'patch'], 'class-arms/{classArm}', [ClassArmController::class, 'update']);
+            Route::middleware('permission:academics.delete')
+                ->delete('class-arms/{classArm}', [ClassArmController::class, 'destroy']);
+
+            Route::middleware('permission:academics.view')
+                ->get('subjects', [SubjectController::class, 'index']);
+            Route::middleware('permission:academics.create')
+                ->post('subjects', [SubjectController::class, 'store']);
+            Route::middleware('permission:academics.view')
+                ->get('subjects/{subject}', [SubjectController::class, 'show']);
+            Route::middleware('permission:academics.update')
+                ->match(['put', 'patch'], 'subjects/{subject}', [SubjectController::class, 'update']);
+            Route::middleware('permission:academics.delete')
+                ->delete('subjects/{subject}', [SubjectController::class, 'destroy']);
+
+            Route::middleware('permission:teacher_assignments.view')
+                ->get('teacher-assignments', [TeacherAssignmentController::class, 'index']);
+            Route::middleware('permission:teacher_assignments.create')
+                ->post('teacher-assignments', [TeacherAssignmentController::class, 'store']);
+            Route::middleware('permission:teacher_assignments.view')
+                ->get('teacher-assignments/{teacherAssignment}', [TeacherAssignmentController::class, 'show']);
+            Route::middleware('permission:teacher_assignments.update')
+                ->match(['put', 'patch'], 'teacher-assignments/{teacherAssignment}', [TeacherAssignmentController::class, 'update']);
+            Route::middleware('permission:teacher_assignments.delete')
+                ->delete('teacher-assignments/{teacherAssignment}', [TeacherAssignmentController::class, 'destroy']);
+
+            /*
+|--------------------------------------------------------------------------
+| Attendance Routes
+|--------------------------------------------------------------------------
+*/
+            Route::middleware('permission:attendance.view')
+                ->get('attendance/sessions', [AttendanceSessionController::class, 'index']);
+            Route::middleware('permission:attendance.take')
+                ->post('attendance/sessions', [AttendanceSessionController::class, 'store']);
+            Route::middleware('permission:attendance.view')
+                ->get('attendance/sessions/{session}', [AttendanceSessionController::class, 'show']);
+            Route::middleware('permission:attendance.take')
+                ->patch('attendance/sessions/{session}/submit', [AttendanceSessionController::class, 'submit']);
+            Route::middleware('permission:attendance.approve')
+                ->patch('attendance/sessions/{session}/approve', [AttendanceSessionController::class, 'approve']);
+            Route::middleware('permission:attendance.take')
+                ->delete('attendance/sessions/{session}', [AttendanceSessionController::class, 'destroy']);
+
+            Route::middleware('permission:attendance.view')
+                ->get('students/{student}/attendance', [StudentAttendanceController::class, 'index']);
         });
     });
 });

@@ -2,73 +2,70 @@
 
 namespace App\Models;
 
-use App\Models\AcademicTerm;
-use App\Models\AcademicYear;
-use App\Models\ClassArm;
-use App\Models\ClassLevel;
 use App\Models\Traits\BelongsToSchool;
 use App\Models\Traits\HasUuidPrimaryKey;
 use App\Models\Traits\RecordsAuditLogs;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class StudentEnrollment extends Model
+class TeacherAssignment extends Model
 {
     use BelongsToSchool, HasUuidPrimaryKey, RecordsAuditLogs, SoftDeletes;
 
     protected $fillable = [
         'school_id',
         'campus_id',
-        'student_id',
         'academic_year_id',
         'academic_term_id',
         'class_level_id',
         'class_arm_id',
-        // legacy string snapshots — kept for existing data, prefer FK columns above
-        'academic_year',
-        'term',
-        'class_level',
-        'class_arm',
-        'enrolled_at',
-        'exited_at',
+        'subject_id',
+        'teacher_user_id',
+        'assignment_type',
+        'starts_at',
+        'ends_at',
         'status',
         'metadata',
     ];
 
     protected $casts = [
-        'enrolled_at' => 'date',
-        'exited_at' => 'date',
+        'starts_at' => 'date',
+        'ends_at' => 'date',
         'metadata' => 'array',
     ];
 
-    public function campus(): BelongsTo
+    public function campus()
     {
         return $this->belongsTo(Campus::class);
     }
 
-    public function student(): BelongsTo
-    {
-        return $this->belongsTo(Student::class);
-    }
-
-    public function academicYear(): BelongsTo
+    public function academicYear()
     {
         return $this->belongsTo(AcademicYear::class);
     }
 
-    public function academicTerm(): BelongsTo
+    public function academicTerm()
     {
         return $this->belongsTo(AcademicTerm::class);
     }
 
-    public function classLevel(): BelongsTo
+    public function classLevel()
     {
         return $this->belongsTo(ClassLevel::class);
     }
 
-    public function classArm(): BelongsTo
+    public function classArm()
     {
         return $this->belongsTo(ClassArm::class);
+    }
+
+    public function subject()
+    {
+        return $this->belongsTo(Subject::class);
+    }
+
+    public function teacher()
+    {
+        return $this->belongsTo(User::class, 'teacher_user_id');
     }
 }

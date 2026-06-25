@@ -59,10 +59,26 @@ class StoreStudentRequest extends FormRequest
             'metadata' => ['nullable', 'array'],
 
             'enrollment' => ['nullable', 'array'],
-            'enrollment.academic_year' => ['required_with:enrollment', 'string', 'max:20'],
-            'enrollment.term' => ['nullable', 'string', 'max:50'],
-            'enrollment.class_level' => ['nullable', 'string', 'max:100'],
-            'enrollment.class_arm' => ['nullable', 'string', 'max:100'],
+            'enrollment.academic_year_id' => [
+                'required_with:enrollment',
+                'uuid',
+                Rule::exists('academic_years', 'id')->where('school_id', $tenantContext->schoolId()),
+            ],
+            'enrollment.academic_term_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('academic_terms', 'id')->where('school_id', $tenantContext->schoolId()),
+            ],
+            'enrollment.class_level_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('class_levels', 'id')->where('school_id', $tenantContext->schoolId()),
+            ],
+            'enrollment.class_arm_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('class_arms', 'id')->where('school_id', $tenantContext->schoolId()),
+            ],
             'enrollment.enrolled_at' => ['nullable', 'date'],
         ];
     }

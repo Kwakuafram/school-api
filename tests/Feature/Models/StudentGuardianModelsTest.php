@@ -2,7 +2,11 @@
 
 namespace Tests\Feature\Models;
 
+use App\Models\AcademicTerm;
+use App\Models\AcademicYear;
 use App\Models\Campus;
+use App\Models\ClassArm;
+use App\Models\ClassLevel;
 use App\Models\Guardian;
 use App\Models\School;
 use App\Models\Student;
@@ -108,32 +112,64 @@ class StudentGuardianModelsTest extends TestCase
         $campus = $this->createCampus($school);
         $student = $this->createStudent($school, $campus);
 
+        $academicYear = AcademicYear::query()->create([
+            'school_id' => $school->id,
+            'name' => '2026/2027',
+            'start_date' => '2026-09-01',
+            'end_date' => '2027-07-31',
+            'is_current' => true,
+            'status' => 'active',
+        ]);
+
+        $term = AcademicTerm::query()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+            'name' => 'Term 1',
+            'start_date' => '2026-09-01',
+            'end_date' => '2026-12-20',
+            'is_current' => true,
+            'status' => 'active',
+        ]);
+
+        $classLevel = ClassLevel::query()->create([
+            'school_id' => $school->id,
+            'name' => 'Basic 1',
+            'code' => 'B1',
+            'sort_order' => 1,
+            'status' => 'active',
+        ]);
+
+        $classArm = ClassArm::query()->create([
+            'school_id' => $school->id,
+            'campus_id' => $campus->id,
+            'class_level_id' => $classLevel->id,
+            'name' => 'Basic 1 A',
+            'code' => 'A',
+            'status' => 'active',
+        ]);
+
         $enrollment = StudentEnrollment::query()->create([
             'school_id' => $school->id,
             'campus_id' => $campus->id,
             'student_id' => $student->id,
-            'academic_year' => '2026/2027',
-            'term' => 'Term 1',
-            'class_level' => 'Basic 1',
-            'class_arm' => 'A',
+            'academic_year_id' => $academicYear->id,
+            'academic_term_id' => $term->id,
+            'class_level_id' => $classLevel->id,
+            'class_arm_id' => $classArm->id,
             'enrolled_at' => '2026-06-01',
             'status' => 'active',
-            'metadata' => [
-                'source' => 'phpunit',
-            ],
+            'metadata' => ['source' => 'phpunit'],
         ]);
 
-        $student->update([
-            'current_enrollment_id' => $enrollment->id,
-        ]);
-
+        $student->update(['current_enrollment_id' => $enrollment->id]);
         $student->refresh()->load('currentEnrollment', 'enrollments');
 
         $this->assertNotNull($enrollment->id);
         $this->assertSame($student->id, $enrollment->student->id);
         $this->assertSame($campus->id, $enrollment->campus->id);
         $this->assertSame('2026-06-01', $enrollment->enrolled_at->toDateString());
-        $this->assertSame('Basic 1', $student->currentEnrollment->class_level);
+        $this->assertSame($classLevel->id, $student->currentEnrollment->class_level_id);
+        $this->assertSame($classArm->id, $student->currentEnrollment->class_arm_id);
         $this->assertCount(1, $student->enrollments);
     }
 
@@ -143,15 +179,38 @@ class StudentGuardianModelsTest extends TestCase
         $campus = $this->createCampus($school);
         $student = $this->createStudent($school, $campus);
 
+        $year2025 = AcademicYear::query()->create([
+            'school_id' => $school->id,
+            'name' => '2025/2026',
+            'start_date' => '2025-09-01',
+            'end_date' => '2026-07-31',
+            'status' => 'active',
+        ]);
+
+        $year2026 = AcademicYear::query()->create([
+            'school_id' => $school->id,
+            'name' => '2026/2027',
+            'start_date' => '2026-09-01',
+            'end_date' => '2027-07-31',
+            'is_current' => true,
+            'status' => 'active',
+        ]);
+
+        $classLevel = ClassLevel::query()->create([
+            'school_id' => $school->id,
+            'name' => 'Basic 1',
+            'code' => 'B1',
+            'sort_order' => 1,
+            'status' => 'active',
+        ]);
+
         StudentEnrollment::query()->create([
             'school_id' => $school->id,
             'campus_id' => $campus->id,
             'student_id' => $student->id,
-            'academic_year' => '2025/2026',
-            'term' => 'Term 3',
-            'class_level' => 'KG 2',
-            'class_arm' => 'A',
-            'enrolled_at' => '2025-06-01',
+            'academic_year_id' => $year2025->id,
+            'class_level_id' => $classLevel->id,
+            'enrolled_at' => '2025-09-01',
             'status' => 'active',
         ]);
 
@@ -159,21 +218,17 @@ class StudentGuardianModelsTest extends TestCase
             'school_id' => $school->id,
             'campus_id' => $campus->id,
             'student_id' => $student->id,
-            'academic_year' => '2026/2027',
-            'term' => 'Term 1',
-            'class_level' => 'Basic 1',
-            'class_arm' => 'A',
-            'enrolled_at' => '2026-06-01',
+            'academic_year_id' => $year2026->id,
+            'class_level_id' => $classLevel->id,
+            'enrolled_at' => '2026-09-01',
             'status' => 'active',
         ]);
 
-        $student->update([
-            'current_enrollment_id' => $newEnrollment->id,
-        ]);
-
+        $student->update(['current_enrollment_id' => $newEnrollment->id]);
         $student->refresh()->load('currentEnrollment');
 
-        $this->assertSame('Basic 1', $student->currentEnrollment->class_level);
+        $this->assertSame($year2026->id, $student->currentEnrollment->academic_year_id);
+        $this->assertSame($newEnrollment->id, $student->current_enrollment_id);
     }
 
     private function createSchool(array $overrides = []): School

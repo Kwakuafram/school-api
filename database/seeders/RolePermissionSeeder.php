@@ -42,10 +42,11 @@ class RolePermissionSeeder extends Seeder
             'teachers.update',
             'teachers.delete',
 
-            'parents.view',
-            'parents.create',
-            'parents.update',
-            'parents.delete',
+            'guardians.view',
+            'guardians.create',
+            'guardians.update',
+            'guardians.delete',
+            'students.guardians.manage',
 
             'attendance.view',
             'attendance.take',
@@ -123,9 +124,11 @@ class RolePermissionSeeder extends Seeder
             'teachers.create',
             'teachers.update',
 
-            'parents.view',
-            'parents.create',
-            'parents.update',
+            'guardians.view',
+            'guardians.create',
+            'guardians.update',
+            'guardians.delete',
+            'students.guardians.manage',
 
             'attendance.view',
             'attendance.take',
@@ -148,7 +151,7 @@ class RolePermissionSeeder extends Seeder
         $roles['principal']->syncPermissions($permissions->only([
             'students.view',
             'teachers.view',
-            'parents.view',
+            'guardians.view',
             'attendance.view',
             'attendance.approve',
             'results.view',
@@ -161,7 +164,7 @@ class RolePermissionSeeder extends Seeder
 
         $roles['accountant']->syncPermissions($permissions->only([
             'students.view',
-            'parents.view',
+            'guardians.view',
             'fees.view',
             'fees.manage',
             'payments.view',

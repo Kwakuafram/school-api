@@ -20,6 +20,14 @@ trait BelongsToSchool
                 }
             }
         });
+
+        static::addGlobalScope('school', function (Builder $query) {
+            $schoolId = app(TenantContext::class)->schoolId();
+
+            if ($schoolId) {
+                $query->where($query->getModel()->getTable().'.school_id', $schoolId);
+            }
+        });
     }
 
     public function scopeForCurrentSchool(Builder $query): Builder
