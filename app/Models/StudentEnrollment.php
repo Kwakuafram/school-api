@@ -2,10 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\AcademicTerm;
-use App\Models\AcademicYear;
-use App\Models\ClassArm;
-use App\Models\ClassLevel;
 use App\Models\Traits\BelongsToSchool;
 use App\Models\Traits\HasUuidPrimaryKey;
 use App\Models\Traits\RecordsAuditLogs;

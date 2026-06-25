@@ -8,6 +8,7 @@ use App\Http\Requests\Attendance\SubmitAttendanceRequest;
 use App\Http\Resources\AttendanceSessionResource;
 use App\Models\AttendanceSession;
 use App\Services\Attendance\AttendanceService;
+use App\Services\Tenancy\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -42,7 +43,7 @@ class AttendanceSessionController extends Controller
     public function show(AttendanceSession $session): JsonResponse
     {
         abort_unless(
-            $session->school_id === app(\App\Services\Tenancy\TenantContext::class)->requireSchoolId(),
+            $session->school_id === app(TenantContext::class)->requireSchoolId(),
             403
         );
 

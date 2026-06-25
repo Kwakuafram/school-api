@@ -86,5 +86,4 @@ class StoreAttendanceSessionRequest extends FormRequest
             'metadata' => ['nullable', 'array'],
         ];
     }
-
 }
